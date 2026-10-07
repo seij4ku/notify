@@ -1,0 +1,10 @@
+{
+  "manifest_version": 2,
+  "name": "Notify page capture",
+  "version": "1.0.0",
+  "description": "Save the current page to your local Notify rough-notes folder.",
+  "permissions": ["activeTab", "nativeMessaging"],
+  "background": { "scripts": ["background.js"] },
+  "browser_action": { "default_title": "Capture page with Notify" },
+  "applications": { "gecko": { "id": "notify-capture@local" } }
+}

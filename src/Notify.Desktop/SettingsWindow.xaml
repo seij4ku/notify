@@ -12,8 +12,8 @@
         <TextBlock Text="Directory of tag templates (filenames appear in the tag list)" FontWeight="SemiBold"/>
         <DockPanel Margin="0,5,0,12"><Button Content="Browse…" DockPanel.Dock="Right" Click="BrowseTags_Click" Padding="10,5"/><TextBox x:Name="TagsDirectoryBox" Margin="0,0,8,0" VerticalContentAlignment="Center"/></DockPanel>
         <TextBlock Text="Region screenshot hotkey" FontWeight="SemiBold"/>
-        <TextBox x:Name="HotkeyBox" Margin="0,5,0,0" Padding="5" IsReadOnly="True" Focusable="True" PreviewKeyDown="HotkeyBox_PreviewKeyDown" ToolTip="Click, then press a modifier and key (for example Ctrl+Alt+F12)"/>
-        <TextBlock Text="Click the field and press the desired hotkey." Margin="0,4,0,0" Foreground="#64748B"/>
+        <TextBox x:Name="HotkeyBox" Margin="0,5,0,0" Padding="5" IsReadOnly="True" Focusable="True" PreviewKeyDown="HotkeyBox_PreviewKeyDown" ToolTip="Click, then press any key, optionally with modifiers"/>
+        <TextBlock Text="Click the field and press any key, with or without modifiers." Margin="0,4,0,0" Foreground="#64748B"/>
       </StackPanel>
     </GroupBox>
     <GroupBox Header="Optional cloud model" Padding="12" Margin="0,14,0,14" Background="White">

@@ -26,11 +26,11 @@ Set an OpenAI API key under **Settings**, select **Screen OCR**, then select a s
 
 ## Research packs
 
-Configure the Obsidian vault and research output directory in **Settings**. Search by text and comma-separated frontmatter tags, select matching notes, and create a pack. Tags are read from `tag:` and `tags:` YAML frontmatter. Optionally configure a directory of tag template files; their filenames appear as tag suggestions. Notify compiles selected notes into a Markdown file in a new folder and leaves source notes unchanged.
+Configure the Obsidian vault and research output directory in **Settings**. Search by text and tag-template filenames. Each selected tag template’s Markdown table constrains the matching vault notes; multiple tags intersect. Add and remove filtered notes from the pack selection, then create the pack. Notify compiles those notes into a Markdown file in a new folder and leaves source notes unchanged.
 
 ## Settings
 
-The settings window configures the Firefox processed-notes location, vault, research-pack folder, tag-template directory, screenshot hotkey, and OpenAI API key. To record the hotkey, click its field and press a modifier combination and key (for example `Ctrl+Alt+F12`).
+The settings window configures the Firefox processed-notes location, vault, research-pack folder, tag-template directory, screenshot hotkey, and OpenAI API key. To record the hotkey, click its field and press any key, with or without modifiers. A bare key is global and will intercept that key in other apps while Notify is running.
 
 ## Troubleshooting
 

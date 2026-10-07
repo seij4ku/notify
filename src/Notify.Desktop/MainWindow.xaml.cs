@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -15,10 +16,12 @@ public partial class MainWindow : Window
     HwndSource? source;
     IntPtr windowHandle;
     bool hotkeyRegistered;
+    readonly ObservableCollection<NoteResult> packNotes = [];
 
     public MainWindow()
     {
         InitializeComponent();
+        PackList.ItemsSource = packNotes;
         UpdateSettingsSummary();
         FirefoxStatus.Text = "Not linked yet. Click above to register this app with Firefox.";
         OcrStatus.Text = "Screen OCR uses the OpenAI API key configured in Settings.";
@@ -129,11 +132,12 @@ public partial class MainWindow : Window
         {
             ResearchStatus.Text = "Searching vault…";
             var vault = settings.VaultFolder;
+            var tagDirectory = settings.TagDirectory;
             var query = QueryBox.Text.Trim();
             var tags = TagsBox.Text.Trim();
-            var results = await Task.Run(() => ResearchPack.Search(vault, query, tags));
+            var results = await Task.Run(() => ResearchPack.Search(vault, query, tags, tagDirectory));
             ResultsList.ItemsSource = results;
-            ResearchStatus.Text = $"Found {results.Count} matching notes. Select notes to include in the pack.";
+            ResearchStatus.Text = $"Found {results.Count} matching notes. Add notes to the pack selection before creating it.";
         }
         catch (Exception ex) { ResearchStatus.Text = "Search failed: " + ex.Message; }
     }
@@ -142,11 +146,24 @@ public partial class MainWindow : Window
     {
         try
         {
-            var notes = ResultsList.SelectedItems.Cast<NoteResult>().ToArray();
+            var notes = packNotes.ToArray();
             var folder = ResearchPack.Create(settings.ResearchFolder, PackNameBox.Text, notes);
             ResearchStatus.Text = $"Research pack created: {folder}";
         }
         catch (Exception ex) { ResearchStatus.Text = "Could not create pack: " + ex.Message; }
+    }
+
+    void AddNotes_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var note in ResultsList.SelectedItems.Cast<NoteResult>())
+            if (!packNotes.Any(existing => string.Equals(existing.Path, note.Path, StringComparison.OrdinalIgnoreCase))) packNotes.Add(note);
+        ResearchStatus.Text = $"{packNotes.Count} notes in the pack selection.";
+    }
+
+    void RemoveNotes_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var note in PackList.SelectedItems.Cast<NoteResult>().ToArray()) packNotes.Remove(note);
+        ResearchStatus.Text = $"{packNotes.Count} notes in the pack selection.";
     }
 
     void LoadTagOptions()

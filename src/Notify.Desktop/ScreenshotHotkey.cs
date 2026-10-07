@@ -13,12 +13,12 @@ static class ScreenshotHotkey
     public static (uint Modifiers, uint Key) Parse(string value)
     {
         var parts = value.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 2) throw new FormatException("Use a modifier and key, such as Ctrl+Alt+F12.");
+        if (parts.Length == 0) throw new FormatException("Press a key to use as the screenshot hotkey.");
         uint modifiers = 0;
         foreach (var part in parts[..^1])
             modifiers |= part.ToLowerInvariant() switch { "ctrl" or "control" => ModControl, "alt" => ModAlt, "shift" => ModShift, "win" => ModWin, _ => throw new FormatException($"Unknown hotkey modifier: {part}") };
-        if (modifiers == 0) throw new FormatException("A screenshot hotkey must include Ctrl, Alt, Shift, or Win.");
         if (!Enum.TryParse<Key>(parts[^1], true, out var key) || key == Key.None || key == Key.DeadCharProcessed) throw new FormatException($"Unknown hotkey key: {parts[^1]}");
+        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin) throw new FormatException("Press a non-modifier key.");
         var virtualKey = KeyInterop.VirtualKeyFromKey(key);
         if (virtualKey == 0) throw new FormatException($"Unsupported hotkey key: {parts[^1]}");
         return ((modifiers | 0x4000), (uint)virtualKey);

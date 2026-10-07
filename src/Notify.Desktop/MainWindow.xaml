@@ -56,10 +56,15 @@
               <Button Grid.Column="2" Content="Search" VerticalAlignment="Bottom" Padding="15,7" Click="Search_Click"/>
             </Grid>
           </GroupBox>
-          <ListBox x:Name="ResultsList" Grid.Row="1" Margin="0,12" SelectionMode="Extended" DisplayMemberPath="Label" Background="White"/>
+          <Grid Grid.Row="1" Margin="0,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0"><TextBlock Text="Filtered notes" Margin="0,0,0,5"/><ListBox x:Name="ResultsList" Height="300" SelectionMode="Extended" DisplayMemberPath="Label" Background="White"/></StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10"><Button Content="Add →" Click="AddNotes_Click" Padding="12,7"/><Button Content="← Remove" Click="RemoveNotes_Click" Margin="0,8,0,0" Padding="12,7"/></StackPanel>
+            <StackPanel Grid.Column="2"><TextBlock Text="Pack selection" Margin="0,0,0,5"/><ListBox x:Name="PackList" Height="300" SelectionMode="Extended" DisplayMemberPath="Label" Background="White"/></StackPanel>
+          </Grid>
           <TextBlock x:Name="ResearchStatus" Grid.Row="2" Margin="0,0,0,10" Foreground="#64748B" TextWrapping="Wrap"/>
           <DockPanel Grid.Row="3">
-            <Button Content="Create pack from selected notes" DockPanel.Dock="Right" Padding="15,8" Click="CreatePack_Click"/>
+            <Button Content="Create pack from selection" DockPanel.Dock="Right" Padding="15,8" Click="CreatePack_Click"/>
             <TextBox x:Name="PackNameBox" Text="Focused learning" Margin="0,0,10,0" Padding="6" VerticalContentAlignment="Center"/>
           </DockPanel>
         </Grid>

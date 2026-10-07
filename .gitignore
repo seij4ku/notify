@@ -1,0 +1,16 @@
+# .NET build output
+**/bin/
+**/obj/
+.vs/
+
+# Local machine settings and secrets
+*.user
+*.suo
+.env
+.env.*
+!.env.example
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+desktop.ini

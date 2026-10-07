@@ -1,0 +1,27 @@
+<Window x:Class="Notify.Desktop.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Notify settings" Width="650" Height="700" MinWidth="560" WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip" Background="#F4F6F8">
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="22">
+    <TextBlock Text="Settings" FontSize="25" FontWeight="SemiBold" Foreground="#172B4D" Margin="0,0,0,16"/>
+    <GroupBox Header="Capture and vault" Padding="12" Background="White">
+      <StackPanel>
+        <TextBlock Text="Firefox processed notes default location" FontWeight="SemiBold"/>
+        <DockPanel Margin="0,5,0,12"><Button Content="Browse…" DockPanel.Dock="Right" Click="BrowseNotes_Click" Padding="10,5"/><TextBox x:Name="NotesBox" Margin="0,0,8,0" VerticalContentAlignment="Center"/></DockPanel>
+        <TextBlock Text="Obsidian vault to search" FontWeight="SemiBold"/>
+        <DockPanel Margin="0,5,0,12"><Button Content="Browse…" DockPanel.Dock="Right" Click="BrowseVault_Click" Padding="10,5"/><TextBox x:Name="VaultBox" Margin="0,0,8,0" VerticalContentAlignment="Center"/></DockPanel>
+        <TextBlock Text="Research pack folder" FontWeight="SemiBold"/>
+        <DockPanel Margin="0,5,0,12"><Button Content="Browse…" DockPanel.Dock="Right" Click="BrowseResearch_Click" Padding="10,5"/><TextBox x:Name="ResearchBox" Margin="0,0,8,0" VerticalContentAlignment="Center"/></DockPanel>
+        <TextBlock Text="Directory of tag templates (filenames appear in the tag list)" FontWeight="SemiBold"/>
+        <DockPanel Margin="0,5,0,12"><Button Content="Browse…" DockPanel.Dock="Right" Click="BrowseTags_Click" Padding="10,5"/><TextBox x:Name="TagsDirectoryBox" Margin="0,0,8,0" VerticalContentAlignment="Center"/></DockPanel>
+        <TextBlock Text="Region screenshot hotkey" FontWeight="SemiBold"/>
+        <TextBox x:Name="HotkeyBox" Margin="0,5,0,0" Padding="5" IsReadOnly="True" Focusable="True" PreviewKeyDown="HotkeyBox_PreviewKeyDown" ToolTip="Click, then press a modifier and key (for example Ctrl+Alt+F12)"/>
+        <TextBlock Text="Click the field and press the desired hotkey." Margin="0,4,0,0" Foreground="#64748B"/>
+      </StackPanel>
+    </GroupBox>
+    <GroupBox Header="Optional cloud model" Padding="12" Margin="0,14,0,14" Background="White">
+      <StackPanel>
+        <TextBlock Text="OpenAI API key (encrypted for this Windows account). Selected screenshots are sent to OpenAI for OCR. Research packs stay local." TextWrapping="Wrap" Foreground="#64748B"/>
+        <PasswordBox x:Name="ApiKeyBox" Margin="0,8,0,0" Padding="5"/>
+      </StackPanel>
+    </GroupBox>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="Cancel" IsCancel="True" Padding="15,7" Margin="0,0,8,0"/><Button Content="Save settings" IsDefault="True" Click="Save_Click" Padding="15,7"/></StackPanel>
+  </StackPanel></ScrollViewer>
+</Window>

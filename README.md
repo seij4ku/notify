@@ -1,43 +1,39 @@
 # Notify
 
-Local Windows companion for capturing Firefox pages and screen regions into Obsidian.
+Windows companion for Firefox page capture, OpenAI screen OCR, and Obsidian research packs.
 
-## Build and run
+## Build
 
-Install the .NET 8 SDK and Python 3.11 or 3.12. From the repository root:
+Install the .NET 8 SDK, then publish from the repository root:
 
 ```powershell
 dotnet publish .\src\Notify.Desktop\Notify.Desktop.csproj -c Release -r win-x64 --self-contained true
-& .\src\Notify.Desktop\bin\Release\net8.0-windows\win-x64\publish\Notify.Desktop.exe
 ```
 
-The app defaults to `C:\Users\<you>\iCloudDrive\iCloud~md~obsidian\Obsidian Vault\3. Rough Notes`; change it in the folder field to save that choice locally.
+The executable is written under `src\Notify.Desktop\bin\Release\net8.0-windows\win-x64\publish`. Build output is ignored by Git.
 
-## Offline OCR setup
-
-While online, install Pix2Text and download its models once. Run from the repository root:
-
-```powershell
-python -m pip install pix2text
-python .\src\setup_ocr.py
-```
-
-The warm-up downloads model assets; after it finishes, OCR runs locally without network access. Region selection copies the image directly to the clipboard and passes PNG bytes in memory to the worker; Notify does not save screenshots or Pix2Text debug images. Python and the Pix2Text models must remain installed on this machine.
-
-## Firefox page capture
+## Firefox capture
 
 1. In Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `src/firefox-extension/manifest.json`.
-2. Open Notify and click **Link desktop app to Firefox**. This registers the running app as Firefox's native messaging host for the extension.
+2. In Notify, select **Firefox capture**, then **Link desktop app to Firefox**.
+3. Click the Notify toolbar button on a web page.
 
-Click the extension toolbar button on a page. Notify writes a timestamped Markdown file with the required frontmatter and source link. Existing notes are kept; name collisions get a numbered suffix. A temporarily loaded Firefox extension must be loaded again after Firefox restarts.
+The extension injects a small script into the active tab. It captures the title, URL, and the inner HTML and visible text from the first `article` or `main` element, falling back to the page body. It sends those fields over Firefox Native Messaging to the Notify executable. Notify removes common page chrome and converts the remaining HTML to Markdown, then saves a timestamped note in the configured processed-notes folder. There is no localhost server. Reload the temporary extension after Firefox restarts.
 
-## Optional cloud API key
+## Screen OCR
 
-The expandable API key setting stores a key encrypted for the current Windows account. Local Pix2Text OCR does not use it; no cloud provider or model is configured in this MVP.
+Set an OpenAI API key under **Settings**, select **Screen OCR**, then select a screen region (or use the configured global hotkey). Notify copies the crop to the clipboard and sends its PNG bytes to OpenAI for transcription and basic cleanup. No screenshot file is created. The API key is encrypted for the current Windows account. Screenshot image data is sent to OpenAI; research-pack processing stays local.
+
+## Research packs
+
+Configure the Obsidian vault and research output directory in **Settings**. Search by text and comma-separated frontmatter tags, select matching notes, and create a pack. Tags are read from `tag:` and `tags:` YAML frontmatter. Optionally configure a directory of tag template files; their filenames appear as tag suggestions. Notify compiles selected notes into a Markdown file in a new folder and leaves source notes unchanged.
+
+## Settings
+
+The settings window configures the Firefox processed-notes location, vault, research-pack folder, tag-template directory, screenshot hotkey, and OpenAI API key. To record the hotkey, click its field and press a modifier combination and key (for example `Ctrl+Alt+F12`).
 
 ## Troubleshooting
 
-- **OCR says Python/Pix2Text is missing:** confirm `python` is on `PATH`, then rerun the offline OCR setup above.
-- **Model download fails:** run `python .\src\setup_ocr.py` while online; first-use setup requires access to the model host.
-- **Firefox reports native host unavailable:** verify the registry entry points to the JSON manifest and that its executable path and extension ID match this README.
-- **Capture cannot save:** choose an existing writable folder in the app and retry.
+- **OpenAI OCR fails:** verify the API key in Settings and check the error shown in the OCR view.
+- **Firefox reports native host unavailable:** use the in-app link action and verify the temporary extension is loaded with the configured extension ID.
+- **Capture cannot save:** choose a writable notes folder in Settings.

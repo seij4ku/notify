@@ -26,21 +26,14 @@ The warm-up downloads model assets; after it finishes, OCR runs locally without 
 
 ## Firefox page capture
 
-1. Open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `src/firefox-extension/manifest.json`.
-2. Publish the app as above. Create `%LOCALAPPDATA%\Notify\native-host.json` with this content, replacing `<absolute-repo-path>` with the repository path:
+1. In Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `src/firefox-extension/manifest.json`.
+2. Open Notify and click **Link desktop app to Firefox**. This registers the running app as Firefox's native messaging host for the extension.
 
-   ```json
-   {"name":"com.notify.desktop","description":"Notify local capture","path":"<absolute-repo-path>\\src\\Notify.Desktop\\bin\\Release\\net8.0-windows\\win-x64\\publish\\Notify.Desktop.exe","type":"stdio","allowed_extensions":["notify-capture@local"]}
-   ```
+Click the extension toolbar button on a page. Notify writes a timestamped Markdown file with the required frontmatter and source link. Existing notes are kept; name collisions get a numbered suffix. A temporarily loaded Firefox extension must be loaded again after Firefox restarts.
 
-3. Register it in PowerShell:
+## Optional cloud API key
 
-   ```powershell
-   New-Item -Force HKCU:\Software\Mozilla\NativeMessagingHosts\com.notify.desktop | Out-Null
-   Set-ItemProperty HKCU:\Software\Mozilla\NativeMessagingHosts\com.notify.desktop '(default)' "$env:LOCALAPPDATA\Notify\native-host.json"
-   ```
-
-Click the extension toolbar button on a page. Notify writes a timestamped Markdown file with the required frontmatter and source link. Existing notes are kept; name collisions get a numbered suffix.
+The expandable API key setting stores a key encrypted for the current Windows account. Local Pix2Text OCR does not use it; no cloud provider or model is configured in this MVP.
 
 ## Troubleshooting
 

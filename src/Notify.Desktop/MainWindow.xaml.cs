@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Pipes;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,8 @@ public partial class MainWindow : Window
     IntPtr windowHandle;
     bool hotkeyRegistered;
     readonly ObservableCollection<NoteResult> packNotes = [];
+    string? firefoxTitle;
+    string? firefoxUrl;
 
     public MainWindow()
     {
@@ -28,6 +31,84 @@ public partial class MainWindow : Window
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         SourceInitialized += (_, _) => RegisterScreenshotHotkey();
         Closed += (_, _) => UnregisterScreenshotHotkey();
+        _ = Task.Run(ListenForFirefoxAsync);
+    }
+
+    async Task ListenForFirefoxAsync()
+    {
+        while (true)
+        {
+            using var pipe = new NamedPipeServerStream("NotifyFirefox", PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            await pipe.WaitForConnectionAsync();
+            try
+            {
+                var header = new byte[4];
+                if (!await ReadPipeFullyAsync(pipe, header)) continue;
+                var length = BitConverter.ToInt32(header);
+                if (length is < 2 or > 8_000_000) continue;
+                var payload = new byte[length];
+                if (!await ReadPipeFullyAsync(pipe, payload)) continue;
+                using var message = JsonDocument.Parse(payload);
+                var capture = message.RootElement.Clone();
+                await Dispatcher.InvokeAsync(() => _ = ProcessFirefoxCaptureAsync(capture));
+                var reply = JsonSerializer.SerializeToUtf8Bytes(new { ok = true });
+                await pipe.WriteAsync(BitConverter.GetBytes(reply.Length));
+                await pipe.WriteAsync(reply);
+                await pipe.FlushAsync();
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() => FirefoxProgress.Text = "Firefox capture failed: " + ex.Message);
+            }
+        }
+    }
+
+    static async Task<bool> ReadPipeFullyAsync(Stream stream, Memory<byte> buffer)
+    {
+        var read = 0;
+        while (read < buffer.Length)
+        {
+            var count = await stream.ReadAsync(buffer[read..]);
+            if (count == 0) return false;
+            read += count;
+        }
+        return true;
+    }
+
+    async Task ProcessFirefoxCaptureAsync(JsonElement capture)
+    {
+        Show(); WindowState = WindowState.Normal; Activate();
+        ShowView(FirefoxView, "Firefox capture");
+        firefoxTitle = capture.GetProperty("title").GetString() ?? "Untitled";
+        firefoxUrl = capture.GetProperty("url").GetString() ?? "";
+        FirefoxPageTitle.Text = firefoxTitle;
+        FirefoxOutput.Text = "";
+        FirefoxOutput.IsEnabled = false;
+        FirefoxSaveButton.IsEnabled = false;
+        FirefoxProgress.Text = "Claude Code is processing this page…";
+        try
+        {
+            var html = capture.GetProperty("html").GetString() ?? "";
+            var text = capture.GetProperty("text").GetString() ?? "";
+            if (html.Length == 0 && text.Length == 0) throw new InvalidDataException("The Firefox capture contained no page content.");
+            FirefoxOutput.Text = await Ocr.RunPageAsync(firefoxTitle, firefoxUrl, html, text);
+            FirefoxOutput.IsEnabled = true;
+            FirefoxSaveButton.IsEnabled = true;
+            FirefoxProgress.Text = "Review or edit the Markdown, then save it to the folder shown above.";
+        }
+        catch (Exception ex) { FirefoxProgress.Text = "Claude Code could not process this page: " + ex.Message; }
+    }
+
+    void SaveFirefoxNote_Click(object sender, RoutedEventArgs e)
+    {
+        if (firefoxTitle is null || firefoxUrl is null || string.IsNullOrWhiteSpace(FirefoxOutput.Text)) return;
+        try
+        {
+            var path = MarkdownNotes.Save(settings.NotesFolder, firefoxTitle, firefoxUrl, FirefoxOutput.Text);
+            FirefoxProgress.Text = "Saved successfully to: " + path;
+            FirefoxSaveButton.IsEnabled = false;
+        }
+        catch (Exception ex) { FirefoxProgress.Text = "Save failed: " + ex.Message; }
     }
 
     void ShowFirefox_Click(object sender, RoutedEventArgs e) => ShowView(FirefoxView, "Firefox capture");
@@ -45,18 +126,27 @@ public partial class MainWindow : Window
     }
 
     async void Capture_Click(object sender, RoutedEventArgs e)
+        => await CaptureRegionAsync(copyTextToClipboard: false);
+
+    async Task CaptureRegionAsync(bool copyTextToClipboard)
     {
         Hide();
         try
         {
             var bytes = await RegionCapture.SelectAsync();
             if (bytes is null) return;
+            Show(); Activate();
             using var stream = new MemoryStream(bytes);
             var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = stream; image.EndInit();
             System.Windows.Clipboard.SetImage(image);
             OcrStatus.Text = "Image copied. Sending a temporary screenshot to Claude Code…";
             ResultBox.Text = await Ocr.RunAsync(bytes);
-            OcrStatus.Text = "OCR complete. Edit the result, then copy it.";
+            if (copyTextToClipboard)
+            {
+                try { System.Windows.Clipboard.SetText(ResultBox.Text); OcrStatus.Text = "OCR complete. Text copied to the clipboard."; }
+                catch (Exception ex) { OcrStatus.Text = $"OCR complete, but clipboard copy failed: {ex.Message}"; }
+            }
+            else OcrStatus.Text = "OCR complete. Edit the result, then copy it.";
         }
         catch (Exception ex) { OcrStatus.Text = ex.Message; }
         finally { Show(); Activate(); }
@@ -112,7 +202,7 @@ public partial class MainWindow : Window
 
     IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == ScreenshotHotkey.Message && wParam.ToInt32() == ScreenshotHotkey.Id) { handled = true; ShowView(OcrView, "Screen OCR"); Capture_Click(this, new RoutedEventArgs()); }
+        if (msg == ScreenshotHotkey.Message && wParam.ToInt32() == ScreenshotHotkey.Id) { handled = true; ShowView(OcrView, "Screen OCR"); _ = CaptureRegionAsync(copyTextToClipboard: true); }
         return IntPtr.Zero;
     }
 

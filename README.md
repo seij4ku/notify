@@ -14,15 +14,18 @@ The current executable is `bin\Notify\Notify.Desktop.exe`. Build output is ignor
 
 ## Firefox capture
 
-1. In Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `src/firefox-extension/manifest.json`.
-2. In Notify, select **Firefox capture**, then **Link desktop app to Firefox**.
-3. Click the Notify toolbar button, choose **Main content**, **Selected text**, or **Entire page**, then click **Process with Notify**.
+For a persistent private install, submit `dist/notify-firefox.zip` to [AMO](https://addons.mozilla.org/developers/) and choose **On your own** for self-distribution. Download the signed `.xpi` AMO returns, then install it in Firefox from `about:addons` using **Install Add-on From File**. Firefox will keep it across restarts. Mozilla signing requires an AMO developer account and review; submit each updated package for signing.
 
-The extension captures the selected range and sends its HTML and visible text through Firefox Native Messaging. Notify runs the page through Claude Code Haiku, converts it to Obsidian-friendly Markdown, saves the note in the configured processed-notes folder, then shows a success confirmation. Firefox starts Notify with stdin/stdout pipes and no special command-line argument; Notify detects that launch mode. Reload the temporary extension after Firefox restarts.
+For development, load the extension temporarily from `about:debugging#/runtime/this-firefox` using **Load Temporary Add-on** and select `src/firefox-extension/manifest.json`. Temporary installs need to be loaded again after Firefox restarts.
+
+1. In Notify, select **Firefox capture**, then **Link desktop app to Firefox**.
+2. Click the Notify toolbar button, choose **Main content**, **Selected text**, or **Entire page**, then click **Send to Notify**.
+
+The extension sends the captured page through Firefox Native Messaging. Notify opens the desktop capture view, runs Claude Code Haiku, and displays editable Markdown there. Select **Save processed note** to write it to the Firefox processed-notes folder configured in Settings; Notify shows the full saved path when it succeeds. Firefox starts a temporary native host which forwards captures to the desktop app.
 
 ## Screen OCR
 
-Run `claude` in a terminal once and sign in with your Claude subscription. Claude Code saves its login for later launches, so Notify does not ask you to sign in each time. Select **Screen OCR**, then select a screen region (or use the configured global hotkey). Notify sets Claude Code to Haiku for every call, writes the crop to a temporary PNG, asks the local CLI to transcribe it into Obsidian-compatible Markdown, then deletes the PNG. Screenshot image data is processed by Claude; research-pack processing stays local. No OpenAI API key is needed.
+Run `claude` in a terminal once and sign in with your Claude subscription. Claude Code saves its login for later launches, so Notify does not ask you to sign in each time. Select **Screen OCR**, then select a screen region (or use the configured global hotkey). Notify sets Claude Code to Haiku for every call, writes the crop to a temporary PNG, asks the local CLI to transcribe it into Obsidian-compatible Markdown, then deletes the PNG. The global shortcut reopens Notify as soon as the region is selected and copies the finished OCR text to the clipboard. Screenshot image data is processed by Claude; research-pack processing stays local. No OpenAI API key is needed.
 
 ## Research packs
 

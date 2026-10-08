@@ -5,5 +5,10 @@
   "description": "Save the current page to your local Notify rough-notes folder.",
   "permissions": ["activeTab", "nativeMessaging"],
   "browser_action": { "default_title": "Capture page with Notify", "default_popup": "popup.html" },
-  "applications": { "gecko": { "id": "notify-capture@local" } }
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "notify-capture@local",
+      "data_collection_permissions": { "required": ["websiteContent"] }
+    }
+  }
 }

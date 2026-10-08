@@ -1,21 +1,39 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Capture with Notify</title>
 <style>
-  body { width: 260px; margin: 14px; color: #172b4d; font: 14px Segoe UI, sans-serif; }
-  label, select, button { display: block; width: 100%; box-sizing: border-box; }
-  select, button { margin-top: 8px; padding: 8px; }
-  button { color: white; background: #2457a7; border: 0; border-radius: 4px; cursor: pointer; }
-  #status { margin: 10px 0 0; overflow-wrap: anywhere; color: #475569; }
+  :root { color-scheme: dark; font: 14px/1.5 system-ui, "Segoe UI", sans-serif; color: #e8e8e9; background: #202123; }
+  body { box-sizing: border-box; width: 300px; margin: 0; padding: 18px; }
+  header { padding-bottom: 15px; border-bottom: 1px solid #383a3d; }
+  .brand { color: #a1a2a5; font-size: 10px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
+  h1 { margin: 5px 0 2px; font-size: 21px; font-weight: 600; }
+  .intro, .hint { margin: 0; color: #a1a2a5; font-size: 12px; }
+  label { display: block; margin: 16px 0 5px; font-size: 12px; font-weight: 600; }
+  select { box-sizing: border-box; width: 100%; padding: 9px 10px; color: inherit; background: #292a2c; border: 1px solid #414346; border-radius: 5px; font: inherit; }
+  select:focus, button:focus-visible { outline: 2px solid #ff2d65; outline-offset: 2px; }
+  .hint { min-height: 36px; padding-top: 6px; }
+  button { display: flex; justify-content: center; width: 100%; margin-top: 14px; padding: 9px 12px; color: #fff; background: #ff2d65; border: 1px solid #ff2d65; border-radius: 5px; font: 600 13px system-ui, "Segoe UI", sans-serif; cursor: pointer; }
+  button:hover:not(:disabled) { background: #e51f55; }
+  button:disabled { opacity: .7; cursor: wait; }
+  [hidden] { display: none !important; }
+  #status { min-height: 42px; margin: 12px 0 0; color: #b4b5b8; font-size: 12px; overflow-wrap: anywhere; }
+  #status[data-state="error"] { color: #ff838e; }
+  #status[data-state="success"] { color: #ff5d86; }
+  #status[data-state="working"]::before { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: #ff2d65; animation: pulse 1s ease-in-out infinite alternate; }
+  @keyframes pulse { to { opacity: .3; } }
+  footer { margin-top: 11px; padding-top: 10px; border-top: 1px solid #383a3d; color: #85878c; font-size: 10px; }
 </style>
-<label for="scope">Capture range</label>
-<select id="scope">
-  <option value="main">Main content</option>
-  <option value="selection">Selected text</option>
-  <option value="page">Entire page</option>
-</select>
-<button id="capture">Process with Notify</button>
-<p id="status" role="status">Choose a range, then process the page.</p>
-<script src="popup.js"></script>
+<body>
+  <header><div class="brand">Notify</div><h1>Capture page</h1><p class="intro">Review and save the cleaned note in Notify.</p></header>
+  <label for="scope">Capture range</label>
+  <select id="scope"><option value="main">Main content</option><option value="selection">Selected text</option><option value="page">Entire page</option></select>
+  <p id="hint" class="hint">Capture the article or main content area.</p>
+  <button id="capture"><span id="buttonText">Send to Notify</span></button>
+  <button id="again" hidden>Capture another page</button>
+  <p id="status" role="status" aria-live="polite" data-state="idle">Choose a range, then send the page.</p>
+  <footer>Claude Haiku · Review and save in Notify</footer>
+  <script src="popup.js"></script>
+</body>
 </html>

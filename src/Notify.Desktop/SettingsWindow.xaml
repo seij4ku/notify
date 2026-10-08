@@ -16,12 +16,6 @@
         <TextBlock Text="Click the field and press any key, with or without modifiers." Margin="0,4,0,0" Foreground="#64748B"/>
       </StackPanel>
     </GroupBox>
-    <GroupBox Header="Optional cloud model" Padding="12" Margin="0,14,0,14" Background="White">
-      <StackPanel>
-        <TextBlock Text="OpenAI API key (encrypted for this Windows account). Selected screenshots are sent to OpenAI for OCR. Research packs stay local." TextWrapping="Wrap" Foreground="#64748B"/>
-        <PasswordBox x:Name="ApiKeyBox" Margin="0,8,0,0" Padding="5"/>
-      </StackPanel>
-    </GroupBox>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="Cancel" IsCancel="True" Padding="15,7" Margin="0,0,8,0"/><Button Content="Save settings" IsDefault="True" Click="Save_Click" Padding="15,7"/></StackPanel>
   </StackPanel></ScrollViewer>
 </Window>

@@ -6,6 +6,8 @@ namespace Notify.Desktop;
 
 static class NativeHost
 {
+    public static bool HasStandardPipeHandles => IsPipe(GetStdHandle(-10)) && IsPipe(GetStdHandle(-11));
+
     public static void Run()
     {
         var input = Console.OpenStandardInput(); var output = Console.OpenStandardOutput();
@@ -22,7 +24,11 @@ static class NativeHost
                 var folderFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Notify", "vault.txt");
                 var folder = File.Exists(folderFile) ? File.ReadAllText(folderFile) : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "iCloudDrive", "iCloud~md~obsidian", "Obsidian Vault", "3. Rough Notes");
                 var html = root.TryGetProperty("html", out var h) ? h.GetString() ?? "" : ""; var text = root.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "";
-                var captured = DateTime.Now; var path = MarkdownNotes.Save(folder, title.GetString() ?? "Untitled", uri.ToString(), html, text, captured);
+                if (html.Length == 0 && text.Length == 0) throw new InvalidDataException("The extension sent no page content.");
+                var pageTitle = title.GetString() ?? "Untitled";
+                var markdown = Ocr.RunPageAsync(pageTitle, uri.ToString(), html, text).GetAwaiter().GetResult();
+                var captured = DateTime.Now; var path = MarkdownNotes.Save(folder, pageTitle, uri.ToString(), markdown, captured);
+                System.Windows.MessageBox.Show($"Processed page saved to:\n{path}", "Notify — capture complete", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 Reply(output, new { ok = true, path });
             }
             catch (Exception ex) { Reply(output, new { ok = false, error = ex.Message }); }
@@ -30,4 +36,12 @@ static class NativeHost
     }
     static bool ReadFully(Stream stream, Span<byte> data) { var read = 0; while (read < data.Length) { var n = stream.Read(data[read..]); if (n == 0) return false; read += n; } return true; }
     static void Reply(Stream output, object value) { var bytes = JsonSerializer.SerializeToUtf8Bytes(value); output.Write(BitConverter.GetBytes(bytes.Length)); output.Write(bytes); output.Flush(); }
+
+    static bool IsPipe(IntPtr handle) => handle != IntPtr.Zero && handle != new IntPtr(-1) && GetFileType(handle) == 3;
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    static extern IntPtr GetStdHandle(int standardHandle);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    static extern uint GetFileType(IntPtr handle);
 }

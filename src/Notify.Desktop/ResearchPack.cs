@@ -27,7 +27,7 @@ static class ResearchPack
                 ? Directory.EnumerateFiles(tagDirectory).FirstOrDefault(path => string.Equals(Path.GetFileNameWithoutExtension(path), tag, StringComparison.OrdinalIgnoreCase))
                 : null;
             if (template is null) throw new FileNotFoundException($"No tag template named '{tag}' was found in the configured tag directory.");
-            var tagFiles = ReadTemplateFiles(File.ReadAllText(template), vault, files);
+            var tagFiles = ReadTemplateFiles(File.ReadAllText(template), vault, tagDirectory, files);
             if (allowed is null) allowed = tagFiles; else allowed.IntersectWith(tagFiles);
         }
         // ponytail: scans markdown on each search; add an index only if real vaults make this slow.
@@ -46,7 +46,7 @@ static class ResearchPack
         return results;
     }
 
-    static HashSet<string> ReadTemplateFiles(string markdown, string vault, string[] vaultFiles)
+    static HashSet<string> ReadTemplateFiles(string markdown, string vault, string tagDirectory, string[] vaultFiles)
     {
         var byPath = vaultFiles.ToDictionary(path => Path.GetRelativePath(vault, path).Replace('\\', '/')[..^3], StringComparer.OrdinalIgnoreCase);
         var byTitle = vaultFiles.GroupBy(path => Path.GetFileNameWithoutExtension(path) ?? "", StringComparer.OrdinalIgnoreCase).ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
@@ -74,7 +74,63 @@ static class ResearchPack
                     }
                 }
         }
+        if (matches.Count == 0 && HasDynamicTagBase(markdown, vault, tagDirectory))
+        {
+            var tags = ReadFrontmatterValues(markdown, "tag|tags").Select(NormalizeTag).Where(tag => tag.Length > 0).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var path in vaultFiles)
+            {
+                try
+                {
+                    if (ReadFrontmatterValues(File.ReadAllText(path), "tag|tags").Select(NormalizeTag).Any(tags.Contains))
+                        matches.Add(Path.GetFullPath(path));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+        }
         return matches;
+    }
+
+    static bool HasDynamicTagBase(string markdown, string vault, string tagDirectory)
+    {
+        foreach (Match embed in Regex.Matches(markdown, @"!\[\[([^\]|#]+\.base)(?:[|#][^\]]*)?\]\]", RegexOptions.IgnoreCase))
+        {
+            var name = Path.GetFileName(embed.Groups[1].Value.Trim());
+            var candidates = new[] { Path.Combine(vault, name), Path.Combine(tagDirectory, name) };
+            foreach (var candidate in candidates)
+                if (File.Exists(candidate) && Regex.IsMatch(File.ReadAllText(candidate), @"list\(tag\)\.contains\(this\)", RegexOptions.IgnoreCase)) return true;
+        }
+        return false;
+    }
+
+    static IEnumerable<string> ReadFrontmatterValues(string markdown, string keys)
+    {
+        var match = Regex.Match(markdown, @"\A\s*---\s*\r?\n(?<yaml>.*?)\r?\n---(?:\r?\n|$)", RegexOptions.Singleline);
+        if (!match.Success) return [];
+        var values = new List<string>();
+        var active = false;
+        foreach (var line in match.Groups["yaml"].Value.Split('\n'))
+        {
+            if (Regex.Match(line, @"^(?<key>[\w-]+)\s*:\s*(?<value>.*)$") is { Success: true } field)
+            {
+                active = Regex.IsMatch(field.Groups["key"].Value, $@"^(?:{keys})$", RegexOptions.IgnoreCase);
+                if (active && field.Groups["value"].Value.Trim() is { Length: > 0 } value) values.AddRange(SplitYamlValues(value));
+            }
+            else if (active && Regex.Match(line, @"^\s+-\s*(?<value>.+?)\s*$") is { Success: true } item)
+                values.AddRange(SplitYamlValues(item.Groups["value"].Value));
+            else if (line.Length > 0 && !char.IsWhiteSpace(line[0])) active = false;
+        }
+        return values;
+    }
+
+    static IEnumerable<string> SplitYamlValues(string value) => value.Trim().Trim('[', ']').Split(',').Select(item => item.Trim().Trim('"', '\''));
+
+    static string NormalizeTag(string value)
+    {
+        var tag = value.Trim().TrimStart('#');
+        if (tag.StartsWith("[[") && tag.EndsWith("]]")) tag = tag[2..^2].Split('|')[0];
+        var fragment = tag.IndexOf('#'); if (fragment >= 0) tag = tag[..fragment];
+        var alias = tag.IndexOf('|'); if (alias >= 0) tag = tag[..alias];
+        return tag.Trim();
     }
 
     static string[] SplitTableRow(string line)

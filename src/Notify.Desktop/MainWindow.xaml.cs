@@ -24,7 +24,7 @@ public partial class MainWindow : Window
         PackList.ItemsSource = packNotes;
         UpdateSettingsSummary();
         FirefoxStatus.Text = "Not linked yet. Click above to register this app with Firefox.";
-        OcrStatus.Text = "Screen OCR uses the OpenAI API key configured in Settings.";
+        OcrStatus.Text = "Screen OCR uses your saved Claude Code CLI sign-in.";
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         SourceInitialized += (_, _) => RegisterScreenshotHotkey();
         Closed += (_, _) => UnregisterScreenshotHotkey();
@@ -54,7 +54,7 @@ public partial class MainWindow : Window
             using var stream = new MemoryStream(bytes);
             var image = new BitmapImage(); image.BeginInit(); image.CacheOption = BitmapCacheOption.OnLoad; image.StreamSource = stream; image.EndInit();
             System.Windows.Clipboard.SetImage(image);
-            OcrStatus.Text = "Image copied. Sending to OpenAI for OCR…";
+            OcrStatus.Text = "Image copied. Sending a temporary screenshot to Claude Code…";
             ResultBox.Text = await Ocr.RunAsync(bytes);
             OcrStatus.Text = "OCR complete. Edit the result, then copy it.";
         }

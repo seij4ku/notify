@@ -35,7 +35,7 @@
         <StackPanel x:Name="OcrView" Visibility="Collapsed">
           <GroupBox Header="Screen region to text" Padding="16" Background="White">
             <StackPanel>
-              <TextBlock Text="Select a region to copy it to the clipboard and send it to OpenAI for cleaned OCR. No screenshot file is created." TextWrapping="Wrap" Foreground="#475569"/>
+              <TextBlock Text="Select a region to copy it to the clipboard and send it to Claude Code for cleaned OCR. The temporary screenshot is deleted after processing." TextWrapping="Wrap" Foreground="#475569"/>
               <StackPanel Orientation="Horizontal" Margin="0,14,0,10">
                 <Button Content="Select region" Padding="16,9" Click="Capture_Click"/>
                 <TextBlock x:Name="HotkeySummary" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="#64748B"/>

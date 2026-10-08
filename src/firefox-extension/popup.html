@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Capture with Notify</title>
+<style>
+  body { width: 260px; margin: 14px; color: #172b4d; font: 14px Segoe UI, sans-serif; }
+  label, select, button { display: block; width: 100%; box-sizing: border-box; }
+  select, button { margin-top: 8px; padding: 8px; }
+  button { color: white; background: #2457a7; border: 0; border-radius: 4px; cursor: pointer; }
+  #status { margin: 10px 0 0; overflow-wrap: anywhere; color: #475569; }
+</style>
+<label for="scope">Capture range</label>
+<select id="scope">
+  <option value="main">Main content</option>
+  <option value="selection">Selected text</option>
+  <option value="page">Entire page</option>
+</select>
+<button id="capture">Process with Notify</button>
+<p id="status" role="status">Choose a range, then process the page.</p>
+<script src="popup.js"></script>
+</html>

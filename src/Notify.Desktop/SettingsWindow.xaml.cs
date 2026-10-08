@@ -16,7 +16,6 @@ public partial class SettingsWindow : Window
         ResearchBox.Text = settings.ResearchFolder;
         TagsDirectoryBox.Text = settings.TagDirectory;
         HotkeyBox.Text = settings.ScreenshotHotkey;
-        try { ApiKeyBox.Password = ApiKeyStore.Read(); } catch { }
     }
 
     void BrowseNotes_Click(object sender, RoutedEventArgs e) => Browse(NotesBox);
@@ -52,7 +51,6 @@ public partial class SettingsWindow : Window
         try
         {
             _ = ScreenshotHotkey.Parse(HotkeyBox.Text);
-            ApiKeyStore.Write(ApiKeyBox.Password);
             Settings.NotesFolder = NotesBox.Text.Trim();
             Settings.VaultFolder = VaultBox.Text.Trim();
             Settings.ResearchFolder = ResearchBox.Text.Trim();
